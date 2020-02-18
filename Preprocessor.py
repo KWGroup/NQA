@@ -2,6 +2,27 @@ import zipfile
 import numpy as np
 import json
 import pandas as pd
+###################### I: Data Warping ##########################################
+# Functions below are for warping the training data. They are design for 
+# handling three tasks: 
+# 1. "squading" in short answer identification 
+# 2. "classing" (YES/NO/None) of the short answer identification 
+# 3. "candidate_filter"  : determine whether a candidate contains the answer 
+# 4. "global_identifier" : identifiying the long answer from all candidate 
+#
+#################################################################################
+# TODO: 
+# 1. [X] Allow different output modes: 1. pd.dataframe, 2. iterrows generator 
+# 2. [X] Warping differently for candidate filtering and global_identifier 
+# *  No need for dependency matrix for candidate filter.  
+# *  But it needs to have two modes:  
+#    - mode 1: Assigning long answer to all parent candidates and use all 
+#              candidate for training 
+#    - mode 2: Remove the parent candidates and use the candidate of the lowest 
+#              level only. 
+#              this way, we can have less amount of candidate. 
+# *  [X] For global identifier, we need all candidate and the dependency matrix. 
+#################################################################################
 def get_train_data():
   json_zip_name = 'simplified-nq-train.jsonl.zip'
   with zipfile.ZipFile(json_zip_name) as myzip:
@@ -197,23 +218,6 @@ def data_cleaning_for_long_answer(old_data_d, task='local', mode = 'reduce_candi
       new_data_d['answering_candidate_id'] = new_candidate_text_list.index(answer_candidate_text) 
   return new_data_d
 
-'''def create_short_answer_dataset(path):
-  short_answer_dataset = []
-  with open(path) as f:
-    for line in f:
-      old_data_d = json.loads(line)
-      if has_long_answer(old_data_d['annotations'][0]['long_answer']):
-        new_data_d = data_cleaning_for_short_answer(old_data_d)
-        short_answer_dataset.append(new_data_d)
-  return pd.DataFrame(short_answer_dataset)
-def new_create_short_answer_dataset(train_data_generator):
-  short_answer_dataset = []
-  for old_data_d in train_data_generator:
-    if has_long_answer(old_data_d['annotations'][0]['long_answer']):
-      new_data_d = data_cleaning_for_short_answer(old_data_d)
-      short_answer_dataset.append(new_data_d)
-  return pd.DataFrame(short_answer_dataset)'''
-
 def create_answer_data_generator(
   input,
   task='squading',
@@ -275,26 +279,10 @@ def create_answer_dataset(
   for new_data_d in data_generator: 
     answer_dataset.append(new_data_d)
   return pd.DataFrame(answer_dataset)
-
-
-# TODOs: 
-# 1. [V] Allow different output modes: 1. pd.dataframe, 2. iterrows generator 
-# 2. [V] Allow different warping for candidate filtering and global_identifier 
-# *  No need for dependency matrix for candidate filter.  
-# *  But it needs to have two modes:  
-#    - mode 1: Assigning long answer to all parent candidates and use all 
-#              candidate for training 
-#    - mode 2: Remove the parent candidates and use the candidate of the lowest 
-#              level only. 
-#              this way, we can have less amount of candidate. 
-# *  [V] For global identifier, we need all candidate and the dependency matrix. 
-
-
-'''
-testing: 
-gt = get_train_data()
-test = data_cleaning_for_long_answer(next(gt))
-'''
+###################### II: Data Formatting #############################################
+# Functions below are for generating instances that match with
+# the format of training input and outuput. 
+#######################################################################################
 def get_question_tokens(tokenizer, question_text):
   question_tokens = ['[CLS]'] + tokenizer.tokenize(question_text) + ['[SEP]']
   return question_tokens
