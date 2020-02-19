@@ -1,7 +1,7 @@
 # NQA
 This repository is for the Kaggle competition of Google's Natural Question Answer
 
-# Prerequest Steps for this project 
+# Prerequisite steps for this project 
 1. Install transformers: 
 ```
 !pip install transformers
@@ -42,8 +42,8 @@ from NQA.Preprocessor import create_input_output_featureset, input_output_featur
 from transformers import AlbertTokenizer
 tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
 ```
-## preprocessing for the training of short answer models
-### With intermediate dataframe stored 
+## Preprocessing for the training of short answer models
+###  (1) With intermediate dataframe stored 
 ```python
 task = 'short_answer' 
 # This variable can also be set as "classing" or "squading" as wish. 
@@ -57,7 +57,7 @@ tmp_dataframe = create_answer_dataset(
 preprocessed_dataframe = create_input_output_featureset(tmp_dataframe, tokenizer, task = task)
 ```
 
-### With intermediate generator used to avoid intermediate storage  
+###  (2) With intermediate generator used to avoid intermediate storage  
 ```python
 task = 'short_answer' 
 # This variable can also be set as "classing" or "squading" as wish. 
@@ -72,7 +72,7 @@ intermediate_generator = create_answer_data_generator(
 preprocessed_dataframe = create_input_output_featureset(intermediate_generator, tokenizer, task = task)
 ```
 
-### Pure generator mode: 
+### (3) Pure generator mode: 
 
 ```python
 task = 'short_answer' 
@@ -106,6 +106,6 @@ preprocessed_result_generator = input_output_feature_generator(intermediate_gene
 ########################################## ^ 5.17 s per loop #################################################
 
 ```
-In comparison to the short-answer case, the preprocessing for long answer model (i.e., the candidate filter) requires an additional data warpper to preduct the training instances candidate-by-candidate. 
+In comparison to the short-answer case, the preprocessing for long answer model (i.e., the candidate filter) requires an additional data warpper to produce the training instances candidate-by-candidate. 
 
 Here, we recommend using pure generator and avoiding saving any intermediate dataframe, since the amount of training candidate is large.  
