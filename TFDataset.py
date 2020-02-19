@@ -49,24 +49,7 @@ def df_to_dataset(dataframe,
   dataset = dataset.shuffle(buffer_size=len(dataframe))
   dataset = dataset.batch(batch_size, drop_remainder=drop_remainder)
   return dataset
-'''
-Test: 
 
-task = 'candidate_filter' 
-# This variable can also be set as "short_ans_yesno" or "short_ans_entity" as wish. 
-train_data_generator = get_train_data()
-# Limit the training data into a subset to avoid long processing time (remove in real case)
-training_data_subset = [next(train_data_generator) for _ in range(100)] 
-# Saving warped result to a temporary dataframe 
-tmp_dataframe = create_answer_dataset(
-    training_data_subset,task = task)
-# Obtaining the data formatted result dataframe 
-preprocessed_dataframe = create_input_output_featureset(tmp_dataframe, tokenizer, task = task)
-dataset = df_to_dataset(
-    preprocessed_dataframe, 5, task = task)
-
-dataset_checker(dataset)
-'''
 def generator_to_dataset(input_generator, 
                          batch_size, 
                          task = 'candidate_filter',
@@ -144,26 +127,3 @@ def generator_to_dataset(input_generator,
   dataset = dataset.shuffle(buffer_size=shuffling_buffer_size)
   dataset = dataset.batch(batch_size, drop_remainder=drop_remainder)
   return dataset 
-'''
-Test: 
-
-# Import the generator of raw training data 
-from NQA.Preprocessor import get_train_data 
-# Import the data warper 
-from NQA.Preprocessor import create_answer_dataset, create_answer_data_generator
-# Import the data formatter 
-from NQA.Preprocessor import create_input_output_featureset, input_output_feature_generator
-from transformers import AlbertTokenizer
-tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
-from NQA.Preprocessor import data_warping_for_candidate_filter
-task = 'candidate_filter'
-train_data_generator = get_train_data()
-training_data_subset = [next(train_data_generator) for _ in range(100)] 
-intermediate_generator = create_answer_data_generator(
-    training_data_subset,task = task)
-# The additional data warpper: 
-intermediate_generator_ = data_warping_for_candidate_filter(intermediate_generator)
-preprocessed_result_generator = input_output_feature_generator(intermediate_generator_, tokenizer, task = task)
-dataset = generator_to_dataset(preprocessed_result_generator,5, task = task)
-dataset_checker(dataset)
-'''
