@@ -5,8 +5,8 @@ import pandas as pd
 ###################### I: Data Warping ##########################################
 # Functions below are for warping the training data. They are design for 
 # handling three tasks: 
-# 1. "squading" in short answer identification 
-# 2. "classing" (YES/NO/None) of the short answer identification 
+# 1. "short_ans_entity" in short answer identification 
+# 2. "short_ans_yesno" (YES/NO/None) of the short answer identification 
 # 3. "candidate_filter"  : determine whether a candidate contains the answer 
 # 4. "global_identifier" : identifiying the long answer from all candidate 
 #
@@ -51,11 +51,11 @@ def data_cleaning_for_short_answer(
     'example_id' # optional 
     'question_text'
     'long_answer_text'
-    'yes_no_answer' # exist only if task == 'both' or 'classing'
-    'short_answer_start_token' # exist only  if task == 'both' or 'squading'
-    'short_answer_end_token' # exist only if task == 'both' or 'squading'
+    'yes_no_answer' # exist only if task == 'both' or 'short_ans_yesno'
+    'short_answer_start_token' # exist only  if task == 'both' or 'short_ans_entity'
+    'short_answer_end_token' # exist only if task == 'both' or 'short_ans_entity'
   ''' 
-  assert task == 'classing' or task == 'squading' or task == 'both'
+  assert task == 'short_ans_yesno' or task == 'short_ans_entity' or task == 'both'
   new_data_d = {}
   # assignment for both tasks  
   annotations = json_obj['annotations'][0]
@@ -72,7 +72,7 @@ def data_cleaning_for_short_answer(
             long_ans_end
         )
   if task != 'both':
-    if task == 'squading':
+    if task == 'short_ans_entity':
       short_answer_candidate = annotations['short_answers']
       if not short_answer_candidate:
         short_ans_start = -1
@@ -82,10 +82,10 @@ def data_cleaning_for_short_answer(
         short_ans_end = short_answer_candidate[0]['end_token'] - long_ans_start
       new_data_d['short_answer_start_token'] = short_ans_start
       new_data_d['short_answer_end_token'] = short_ans_end
-    elif task == 'classing':
+    elif task == 'short_ans_yesno':
       new_data_d['yes_no_answer'] = annotations['yes_no_answer']
   else:
-    # get squading labels 
+    # get short_ans_entity labels 
     short_answer_candidate = annotations['short_answers']
     if not short_answer_candidate:
       short_ans_start = -1
@@ -95,7 +95,7 @@ def data_cleaning_for_short_answer(
       short_ans_end = short_answer_candidate[0]['end_token'] - long_ans_start
     new_data_d['short_answer_start_token'] = short_ans_start
     new_data_d['short_answer_end_token'] = short_ans_end
-    # get classing labels 
+    # get short_ans_yesno labels 
     new_data_d['yes_no_answer'] = annotations['yes_no_answer']
   return new_data_d 
 
@@ -220,7 +220,7 @@ def data_cleaning_for_long_answer(old_data_d, task='local', mode = 'reduce_candi
 
 def create_answer_data_generator(
   input,
-  task='squading',
+  task='short_ans_entity',
   candidate_filtering_mode = 'reduce_candidate'):
   if type(input) == str: 
     f = open(input,'r')
@@ -228,7 +228,7 @@ def create_answer_data_generator(
   else:
     input_generator = input
   assert candidate_filtering_mode == 'extend_answer' or candidate_filtering_mode == 'reduce_candidate'
-  assert task == 'squading' or task == 'classing' or task == 'short_answer' \
+  assert task == 'short_ans_entity' or task == 'short_ans_yesno' or task == 'short_answer' \
     or task == 'candidate_filter' or task == 'global_identification' or task == 'long_answer' 
   answer_dataset = []
   for old_data_d in input_generator:
@@ -236,7 +236,7 @@ def create_answer_data_generator(
       # when global identification is not enabled, the examples without long answer 
       # should be removed. 
       if has_long_answer(old_data_d['annotations'][0]['long_answer']):
-        if task == 'squading' or task == 'classing' or task == 'short_answer':
+        if task == 'short_ans_entity' or task == 'short_ans_yesno' or task == 'short_answer':
           if task == 'short_answer':
             new_data_d = data_cleaning_for_short_answer(old_data_d,task = 'both')
           else:
@@ -263,11 +263,11 @@ def data_warping_for_candidate_filter(raw_generator):
         }
 def create_answer_dataset(
   input,
-  task='squading',
+  task='short_ans_entity',
   candidate_filtering_mode = 'reduce_candidate'
   ):
   assert candidate_filtering_mode == 'extend_answer' or candidate_filtering_mode == 'reduce_candidate'
-  assert task == 'squading' or task == 'classing' or task == 'short_answer' \
+  assert task == 'short_ans_entity' or task == 'short_ans_yesno' or task == 'short_answer' \
     or task == 'candidate_filter' or task == 'global_identification' or task == 'long_answer' 
   answer_dataset = []
   data_generator = create_answer_data_generator(
@@ -378,8 +378,8 @@ def generate_input_output_per_row(row, task, tokenizer,instance_item_mapper):
   # 1. token_ids
   # 2. segment_ids 
   # 3. mask_ids 
-  # 4. label_yes_no (if task == 'classing' or 'short_answer')  
-  # 5. label_start/end_token (if task == 'classing' or 'squading') 
+  # 4. label_yes_no (if task == 'short_ans_yesno' or 'short_answer')  
+  # 5. label_start/end_token (if task == 'short_ans_yesno' or 'short_ans_entity') 
   # 6. label_contain_answer (if task == 'candidate_filter') 
   label_yes_no_map = {
     'YES': 0,
@@ -387,7 +387,7 @@ def generate_input_output_per_row(row, task, tokenizer,instance_item_mapper):
     'NONE': 2
   }
   short_ans_feature_dict = {}
-  if task == 'squading':
+  if task == 'short_ans_entity':
     (token_ids, segment_ids, mask_ids), (label_start_token, label_end_token) = \
       generate_input_feature(
           tokenizer,
@@ -397,7 +397,7 @@ def generate_input_output_per_row(row, task, tokenizer,instance_item_mapper):
           original_start = instance_item_mapper(row,"short_answer_start_token"),
           original_end = instance_item_mapper(row,"short_answer_end_token")
           )
-  elif task == 'classing':
+  elif task == 'short_ans_yesno':
     token_ids, segment_ids, mask_ids = \
       generate_input_feature(
           tokenizer,
@@ -427,21 +427,21 @@ def generate_input_output_per_row(row, task, tokenizer,instance_item_mapper):
   short_ans_feature_dict['token_ids'] = token_ids
   short_ans_feature_dict['segment_ids'] = segment_ids
   short_ans_feature_dict['mask_ids'] = mask_ids
-  if task == 'squading' or task == 'short_answer':
-    short_ans_feature_dict['label_start_tokens'] = label_start_token
-    short_ans_feature_dict['label_end_tokens'] = label_end_token
+  if task == 'short_ans_entity' or task == 'short_answer':
+    short_ans_feature_dict['label_start_token'] = label_start_token
+    short_ans_feature_dict['label_end_token'] = label_end_token
   return short_ans_feature_dict
-def input_output_feature_generator(input, tokenizer, task = 'classing'):
+def input_output_feature_generator(input, tokenizer, task = 'short_ans_yesno'):
   # assertions 
   instance_item_mapper = ItemMapper().get
-  assert task == 'classing' or task == 'squading' or task == 'short_answer' or task == 'candidate_filter' or task == 'global_identification'
+  assert task == 'short_ans_yesno' or task == 'short_ans_entity' or task == 'short_answer' or task == 'candidate_filter' or task == 'global_identification'
   if type(input).__name__ == 'generator':
     for i, instance in enumerate(input):
       if i == 0: # do assertion in the beginning 
-        if task == 'classing':
+        if task == 'short_ans_yesno':
           assert "yes_no_answer" in instance.keys() 
           assert "long_answer_text" in instance.keys()
-        elif task == 'squading':
+        elif task == 'short_ans_entity':
           assert "short_answer_start_token" in instance.keys()
           assert "short_answer_end_token" in instance.keys()
           assert "long_answer_text" in instance.keys()
@@ -460,10 +460,10 @@ def input_output_feature_generator(input, tokenizer, task = 'classing'):
           tokenizer,
           instance_item_mapper)
   else: # input is a pandas dataframe 
-    if task == 'classing':
+    if task == 'short_ans_yesno':
       assert "yes_no_answer" in input.columns 
       assert "long_answer_text" in input.columns
-    elif task == 'squading':
+    elif task == 'short_ans_entity':
       assert "short_answer_start_token" in input.columns 
       assert "short_answer_end_token" in input.columns
       assert "long_answer_text" in input.columns 
@@ -480,11 +480,11 @@ def input_output_feature_generator(input, tokenizer, task = 'classing'):
 def create_input_output_featureset(
   input, 
   tokenizer, 
-  task='classing'):
+  task='short_ans_yesno'):
   '''
   parameters:
   raw_df: short answer dataframe
-  task: 'classing' (default): yes/no answer; 'squading': short answer entity
+  task: 'short_ans_yesno' (default): yes/no answer; 'short_ans_entity': short answer entity
   returns:
   dataframe of tokenized short answer dataset
   '''

@@ -46,7 +46,7 @@ tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
 ###  (1) With intermediate dataframe stored 
 ```python
 task = 'short_answer' 
-# This variable can also be set as "classing" or "squading" as wish. 
+# This variable can also be set as "short_ans_yesno" or "short_ans_entity" as wish. 
 train_data_generator = get_train_data()
 # Limit the training data into a subset to avoid long processing time (remove in real case)
 training_data_subset = [next(train_data_generator) for _ in range(100)] 
@@ -60,7 +60,7 @@ preprocessed_dataframe = create_input_output_featureset(tmp_dataframe, tokenizer
 ###  (2) With intermediate generator used to avoid intermediate storage  
 ```python
 task = 'short_answer' 
-# This variable can also be set as "classing" or "squading" as wish. 
+# This variable can also be set as "short_ans_yesno" or "short_ans_entity" as wish. 
 train_data_generator = get_train_data()
 # Limit the training data into a subset to avoid long processing time (remove in real case)
 training_data_subset = [next(train_data_generator) for _ in range(100)] 
@@ -76,7 +76,7 @@ preprocessed_dataframe = create_input_output_featureset(intermediate_generator, 
 
 ```python
 task = 'short_answer' 
-# This variable can also be set as "classing" or "squading" as wish. 
+# This variable can also be set as "short_ans_yesno" or "short_ans_entity" as wish. 
 train_data_generator = get_train_data()
 # Limit the training data into a subset to avoid long processing time (remove in real case)
 training_data_subset = [next(train_data_generator) for _ in range(100)] 
