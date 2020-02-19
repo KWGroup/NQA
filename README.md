@@ -20,3 +20,7 @@ try:
 except Exception:
   pass
 ```
+4. Cloning into this repository 
+```
+!git clone https://github.com/KWGroup/NQA.git
+```
