@@ -6,12 +6,15 @@ def dataset_checker(dataset):
   This function fetch an instance from 
   a tf.data.Dataset object 
   '''
-  iterator = dataset.make_one_shot_iterator()
-  one_element = iterator.get_next()
-  with tf.Session() as sess:
-    for _ in range(1):
+  if tf.__version__[0].split('.')[0] == '2':
+    iterator = iter(dataset)
+    return next(iterator)
+  else:
+    iterator = dataset.make_one_shot_iterator()
+    one_element = iterator.get_next()
+    with tf.Session() as sess:  
       value = sess.run(one_element)
-  return value 
+    return value 
 def df_to_dataset(dataframe, 
                   batch_size, 
                   task = 'short_ans_entity',
