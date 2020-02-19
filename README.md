@@ -109,3 +109,31 @@ preprocessed_result_generator = input_output_feature_generator(intermediate_gene
 In comparison to the short-answer case, the preprocessing for long answer model (i.e., the candidate filter) requires an additional data warpper to produce the training instances candidate-by-candidate. 
 
 Here, we recommend using pure generator and avoiding saving any intermediate dataframe, since the amount of training candidate is large.  
+
+# Tutorial to the TFDataset package 
+
+Functions in this package convert the generator and pd.Dataframe obtained from Preprocessor into a tf.data.Dataset object.
+
+[A runnable colab version to this tutorial](https://colab.research.google.com/drive/1utIbKyBPO3ijnnkqO0mrvm5zhWLNauR-#scrollTo=xDKPv3ioPKxK) 
+
+## (1) Converting a preprocessed dataframe into a tf.data.Dataset 
+
+```python
+# Converting the preprocessed dataframe to tf.data.Dataset:
+from NQA.TFDataset import df_to_dataset
+dataset = df_to_dataset(
+    preprocessed_dataframe, batch_size, task = task)
+# Testing the resulting dataset
+from NQA.TFDataset import dataset_checker
+dataset_checker(dataset)
+```
+
+## (2) Converting a preprocessed instance generator into a tf.data.Dataset 
+```python 
+# Converting the preprocessed instance generator to tf.data.Dataset:
+from NQA.TFDataset import generator_to_dataset
+dataset = generator_to_dataset(preprocessed_result_generator,batch_size, task = task)
+# Testing the resulting dataset
+from NQA.TFDataset import dataset_checker
+dataset_checker(dataset)
+```
