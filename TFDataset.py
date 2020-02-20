@@ -21,7 +21,7 @@ def dataset_checker(dataset):
 def df_to_dataset(dataframe,
                   batch_size,
                   task='short_ans_entity',
-                  drop_remainder=False):
+                  drop_remainder=True):
     def formatting_dataframe(dataframe):
         dataframe_dict = dict(dataframe)
         new_dataframe_dict = dict()

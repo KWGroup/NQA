@@ -1,7 +1,7 @@
 # NQA
 This repository is for the Kaggle competition of Google's Natural Question Answer
 
-# Prerequisite steps for this project 
+# Setups for this project 
 1. Install transformers: 
 ```
 !pip install transformers
