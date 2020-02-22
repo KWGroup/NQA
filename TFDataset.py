@@ -50,8 +50,10 @@ def df_to_dataset(dataframe,
         label_contain_answer = dataframe.pop('label_contain_answer')
         dataset = tf.data.Dataset.from_tensor_slices(
             (formatting_dataframe(dataframe), label_contain_answer))
-    dataset = dataset.shuffle(buffer_size=len(dataframe))
-    dataset = dataset.batch(batch_size, drop_remainder=True)
+    dataset = (dataset
+    	.shuffle(buffer_size=len(dataframe))
+    	.batch(batch_size, drop_remainder=True)
+    	)
     return (
 	  tpu_strategy.experimental_distribute_dataset(dataset) 
       if tpu_strategy!=None else dataset
@@ -132,8 +134,10 @@ def generator_to_dataset(input_generator,
         tuple([input_tf_types]+[tf.int32]*label_count),
         tuple([input_tf_shapes]+[tf.TensorShape([])]*label_count),
     )
-    dataset = dataset.shuffle(buffer_size=shuffling_buffer_size)
-    dataset = dataset.batch(batch_size, drop_remainder=True)
+    dataset = (dataset
+    	.shuffle(buffer_size=shuffling_buffer_size)
+    	.batch(batch_size, drop_remainder=True)
+    	)
     return (
 	  tpu_strategy.experimental_distribute_dataset(dataset) 
       if tpu_strategy!=None else dataset
