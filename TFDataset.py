@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
-
-
+import os 
 def dataset_checker(dataset):
     '''
     This function fetch an instance from 
@@ -21,7 +20,8 @@ def dataset_checker(dataset):
 def df_to_dataset(dataframe,
                   batch_size,
                   task='short_ans_entity',
-                  drop_remainder=True):
+                  tpu_strategy=None
+                  ):
     def formatting_dataframe(dataframe):
         dataframe_dict = dict(dataframe)
         new_dataframe_dict = dict()
@@ -51,15 +51,18 @@ def df_to_dataset(dataframe,
         dataset = tf.data.Dataset.from_tensor_slices(
             (formatting_dataframe(dataframe), label_contain_answer))
     dataset = dataset.shuffle(buffer_size=len(dataframe))
-    dataset = dataset.batch(batch_size, drop_remainder=drop_remainder)
-    return dataset
+    dataset = dataset.batch(batch_size, drop_remainder=True)
+    return (
+	  tpu_strategy.experimental_distribute_dataset(dataset) 
+      if tpu_strategy!=None else dataset
+	)
 
 
 def generator_to_dataset(input_generator,
                          batch_size,
                          task='candidate_filter',
                          shuffling_buffer_size=1000,
-                         drop_remainder=True
+                         tpu_strategy=None
                          ):
     def input_formatter(output_type):
         '''
@@ -130,5 +133,8 @@ def generator_to_dataset(input_generator,
         tuple([input_tf_shapes]+[tf.TensorShape([])]*label_count),
     )
     dataset = dataset.shuffle(buffer_size=shuffling_buffer_size)
-    dataset = dataset.batch(batch_size, drop_remainder=drop_remainder)
-    return dataset
+    dataset = dataset.batch(batch_size, drop_remainder=True)
+    return (
+	  tpu_strategy.experimental_distribute_dataset(dataset) 
+      if tpu_strategy!=None else dataset
+	)
