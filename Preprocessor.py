@@ -28,11 +28,11 @@ import dask.bag as db
 #################################################################################
 
 
-def get_train_data(json_zip_name = 'simplified-nq-train.jsonl.zip', monitor = True): 
-  total = 307372.
+def get_train_data(file_name = 'simplified-nq-train.jsonl', monitor = True): 
+  total = 307372
   i = 0
-  with zipfile.ZipFile(json_zip_name) as myzip:
-    with myzip.open('simplified-nq-train.jsonl') as my_json_file:
+  with zipfile.ZipFile(file_name+".zip") as myzip:
+    with myzip.open(file_name) as my_json_file:
       if monitor:
         with tqdm(total=total, file=sys.stdout) as pbar:
           for json_object_str in my_json_file:
