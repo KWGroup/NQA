@@ -53,6 +53,7 @@ def df_to_dataset(dataframe,
     dataset = (dataset
     	.shuffle(buffer_size=len(dataframe))
     	.batch(batch_size, drop_remainder=True)
+    	.prefetch(tf.data.experimental.AUTOTUNE)
     	)
     return (
 	  tpu_strategy.experimental_distribute_dataset(dataset) 
@@ -133,8 +134,11 @@ def generator_to_dataset(input_generator,
         tuple([input_tf_types]+[tf.int32]*label_count),
         tuple([input_tf_shapes]+[tf.TensorShape([])]*label_count),
     )
+    if 'short_' in task:
+    	dataset = dataset.cache() 
     dataset = (dataset
     	.shuffle(buffer_size=shuffling_buffer_size)
     	.batch(batch_size, drop_remainder=True)
+    	.prefetch(tf.data.experimental.AUTOTUNE)
     	)
     return dataset
