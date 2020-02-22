@@ -1,4 +1,6 @@
 import zipfile
+import sys
+from tqdm import tqdm
 import numpy as np
 import json
 import pandas as pd
@@ -26,12 +28,21 @@ import dask.bag as db
 #################################################################################
 
 
-def get_train_data():
-    json_zip_name = 'simplified-nq-train.jsonl.zip'
-    with zipfile.ZipFile(json_zip_name) as myzip:
-        with myzip.open('simplified-nq-train.jsonl') as my_json_file:
-            for json_object_str in my_json_file:
-                yield json.loads(json_object_str.decode("utf-8"))
+def get_train_data(json_zip_name = 'simplified-nq-train.jsonl.zip', monitor = True): 
+  total = 307372.
+  i = 0
+  with zipfile.ZipFile(json_zip_name) as myzip:
+    with myzip.open('simplified-nq-train.jsonl') as my_json_file:
+      if monitor:
+        with tqdm(total=total, file=sys.stdout) as pbar:
+          for json_object_str in my_json_file:
+            i +=1
+            pbar.set_description('processed example: %d' % (i))
+            pbar.update(1)
+            yield json.loads(json_object_str.decode("utf-8"))
+      else:
+        for json_object_str in my_json_file:
+          yield json.loads(json_object_str.decode("utf-8"))
 
 # Preprocessing function for all tasks
 
