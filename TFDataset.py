@@ -63,8 +63,7 @@ def df_to_dataset(dataframe,
 def generator_to_dataset(input_generator,
                          batch_size,
                          task='candidate_filter',
-                         shuffling_buffer_size=1000,
-                         tpu_strategy=None
+                         shuffling_buffer_size=1000
                          ):
     def input_formatter(output_type):
         '''
@@ -138,7 +137,4 @@ def generator_to_dataset(input_generator,
     	.shuffle(buffer_size=shuffling_buffer_size)
     	.batch(batch_size, drop_remainder=True)
     	)
-    return (
-	  tpu_strategy.experimental_distribute_dataset(dataset) 
-      if tpu_strategy!=None else dataset
-	)
+    return dataset
