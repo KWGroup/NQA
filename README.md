@@ -47,12 +47,10 @@ tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
 ```python
 task = 'short_answer' 
 # This variable can also be set as "short_ans_yesno" or "short_ans_entity" as wish. 
-train_data_generator = get_train_data()
-# Limit the training data into a subset to avoid long processing time (remove in real case)
-training_data_subset = [next(train_data_generator) for _ in range(100)] 
+raw_data_generator = get_train_data()
 # Saving warped result to a temporary dataframe 
 tmp_dataframe = create_answer_dataset(
-    training_data_subset,task = task)
+    raw_data_generator,task = task)
 # Obtaining the data formatted result dataframe 
 preprocessed_dataframe = create_input_output_featureset(tmp_dataframe, tokenizer, task = task)
 ```
@@ -61,12 +59,10 @@ preprocessed_dataframe = create_input_output_featureset(tmp_dataframe, tokenizer
 ```python
 task = 'short_answer' 
 # This variable can also be set as "short_ans_yesno" or "short_ans_entity" as wish. 
-train_data_generator = get_train_data()
-# Limit the training data into a subset to avoid long processing time (remove in real case)
-training_data_subset = [next(train_data_generator) for _ in range(100)] 
+raw_data_generator = get_train_data()
 # * Create a generator that produces warped training examples 
 intermediate_generator = create_answer_data_generator(
-    training_data_subset,task = task)
+    raw_data_generator,task = task)
 # Obtaining the data formatted result dataframe 
 # * by connecting the intermediate_generator to the data formatter 
 preprocessed_dataframe = create_input_output_featureset(intermediate_generator, tokenizer, task = task)
@@ -77,12 +73,10 @@ preprocessed_dataframe = create_input_output_featureset(intermediate_generator, 
 ```python
 task = 'short_answer' 
 # This variable can also be set as "short_ans_yesno" or "short_ans_entity" as wish. 
-train_data_generator = get_train_data()
-# Limit the training data into a subset to avoid long processing time (remove in real case)
-training_data_subset = [next(train_data_generator) for _ in range(100)] 
+raw_data_generator = get_train_data()
 # * Create a generator that produces warped training examples 
 intermediate_generator = create_answer_data_generator(
-    training_data_subset,task = task)
+    raw_data_generator,task = task)
 # Obtaining the data formatted result dataframe 
 # * by connecting the intermediate_generator to the data formatter 
 preprocessed_result_generator = input_output_feature_generator(intermediate_generator, tokenizer, task = task)
@@ -94,11 +88,10 @@ To create generator that produced preprocced result, simply replace  `create_inp
 ###############################################################################################################
 from NQA.Preprocessor import data_warping_for_candidate_filter
 task = 'candidate_filter'
-train_data_generator = get_train_data()
-training_data_subset = [next(train_data_generator) for _ in range(100)] 
+raw_data_generator = get_train_data()
 ########################################## ^ 79.6 ms per loop #################################################
 intermediate_generator = create_answer_data_generator(
-    training_data_subset,task = task)
+    raw_data_generator,task = task)
 # The additional data warpper: 
 intermediate_generator_ = data_warping_for_candidate_filter(intermediate_generator)
 ########################################## ^ 4.03 s per loop #################################################
