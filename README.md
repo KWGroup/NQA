@@ -10,7 +10,7 @@ This repository is for the Kaggle competition of Google's Natural Question Answe
 
 # Setups of this project 
 1. Install transformers: 
-```
+```python
 !pip install transformers
 ``` 
 2. Download NQA dataset: 
@@ -28,7 +28,7 @@ except Exception:
   pass
 ```
 4. Cloning into this repository 
-```
+```python
 !git clone https://github.com/KWGroup/NQA.git
 ```
 # Tutorial to the Preprocessor package 
@@ -185,13 +185,13 @@ Here, we explain how to train our NQA model. We consider using TPU with a batch 
 of 256 and training the model used for predicting the short answer entities. 
 [A runnable colab version to this guide](https://colab.research.google.com/gist/jeffrey82221/90f0a71386d21eb416e60867c07c8f47/model-training-guide.ipynb) 
 
-```
+```python
 USE_TPU = False
 task = 'short_ans_entity'
 batch_size = 256
 ```
 ## Setup TPU environment 
-```
+```python
 import tensorflow as tf
 import os
 if USE_TPU:
@@ -205,7 +205,7 @@ If you are using the Kaggle kernal, remove `tpu='grpc://' + os.environ['COLAB_TP
 from `TPUClusterResolver`. 
 
 ## Loading tf.data.Dataset for training 
-```
+```python
 from NQA.Preprocessor import read_train_dataset 
 from NQA.TFDataset import df_to_dataset, generator_to_dataset
 import pandas as pd
