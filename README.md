@@ -1,7 +1,12 @@
 # NQA
 This repository is for the Kaggle competition of Google's Natural Question Answer
 
-# Setups for this project 
+## Outline: 
+* [Tutorial to the Preprocessor package](https://github.com/KWGroup/NQA#tutorial-to-the-preprocessor-package) 
+* [Tutorial to the TFDataset package](https://github.com/KWGroup/NQA#tutorial-to-the-tfdataset-package)
+* [Setups of this project](https://github.com/KWGroup/NQA#setups-of-this-project)
+
+# Setups of this project 
 1. Install transformers: 
 ```
 !pip install transformers
