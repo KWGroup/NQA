@@ -27,7 +27,59 @@ except Exception:
 # Tutorial to the Preprocessor package 
 [A runnable colab version to this tutorial](https://colab.research.google.com/gist/jeffrey82221/c27c3294fda0ede8092c42785ec86df8/tutorial-to-preprocessor.ipynb) 
 
-## Import the preprocessing functions 
+
+## Import the tokenizer 
+```python
+from transformers import AlbertTokenizer
+tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
+```
+
+## Import the training data reader 
+```python
+from NQA.Preprocessor import read_train_dataset
+```
+This function produces preprocessed result in the form  
+of dataframe or generator. 
+
+## applying the preprocessor 
+### build dataframe from scratch 
+```python 
+preprocessed_dataframe = read_train_dataset(
+      task='candidate_filter',
+      mode='build_dataframe',
+      tokenizer=tokenizer)
+```
+### build data generator 
+```python 
+preprocessed_instance_generator = read_train_dataset(
+      task='candidate_filter',
+      mode='build_generator',
+      tokenizer=tokenizer)
+```
+We recommend using `mode == 'build_generator'` for candidate filter task, since 
+it takes a large memory space.
+### loading stored dataframe from google drive 
+```python 
+preprocessed_dataframe = read_train_dataset(
+      task='short_ans_entity',
+      mode='at_google_drive') 
+# when loading from google drive, no need to provide the tokenizer 
+```
+
+For the short-answer tasks (i.e., yesno and entity), we recommend using 
+`mode='at_google_drive'` and storing a cached preprocessed dataframe in google drive to reduce the time.  
+
+Note that if the code is run on the Kaggle kernal, add argument `on_kaggle=True` to `read_train_dataset`. 
+ 
+
+## Descomposing the preprocessing into data warping and data formatting 
+
+Our preprocessing method, `read_training_dataset`, is actually built upon 
+two steps: 1. data warping, and 2. data formatting. Below is a tutorial 
+of how these two steps together processes the raw data for the short and long
+answer tasks. 
+
+### Import the data warping and formatting preprocessing functions 
 ```python
 # Import the generator of raw training data 
 from NQA.Preprocessor import get_train_data 
@@ -37,13 +89,8 @@ from NQA.Preprocessor import create_answer_dataset, create_answer_data_generator
 from NQA.Preprocessor import create_input_output_featureset, input_output_feature_generator
 ```
 
-## Import the tokenizer 
-```python
-from transformers import AlbertTokenizer
-tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
-```
-## Preprocessing for the training of short answer models
-###  (1) With intermediate dataframe stored 
+### In the case of short answer tasks
+####  (1) With intermediate dataframe stored 
 ```python
 task = 'short_answer' 
 # This variable can also be set as "short_ans_yesno" or "short_ans_entity" as wish. 
@@ -55,7 +102,7 @@ tmp_dataframe = create_answer_dataset(
 preprocessed_dataframe = create_input_output_featureset(tmp_dataframe, tokenizer, task = task)
 ```
 
-###  (2) With intermediate generator used to avoid intermediate storage  
+####  (2) With intermediate generator used to avoid intermediate storage  
 ```python
 task = 'short_answer' 
 # This variable can also be set as "short_ans_yesno" or "short_ans_entity" as wish. 
@@ -68,7 +115,7 @@ intermediate_generator = create_answer_data_generator(
 preprocessed_dataframe = create_input_output_featureset(intermediate_generator, tokenizer, task = task)
 ```
 
-### (3) Pure generator mode: 
+#### (3) Pure generator mode: 
 
 ```python
 task = 'short_answer' 
@@ -82,21 +129,17 @@ intermediate_generator = create_answer_data_generator(
 preprocessed_result_generator = input_output_feature_generator(intermediate_generator, tokenizer, task = task)
 ```
 To create generator that produced preprocced result, simply replace  `create_input_output_featureset` with `input_output_feature_generator`.
-## Preprocessing for training the long answer model (i.e., candidate filter)
+### In the case of long answer task (i.e., candidate filtering)
 
 ```python
-###############################################################################################################
 from NQA.Preprocessor import data_warping_for_candidate_filter
 task = 'candidate_filter'
 raw_data_generator = get_train_data()
-########################################## ^ 79.6 ms per loop #################################################
 intermediate_generator = create_answer_data_generator(
     raw_data_generator,task = task)
 # The additional data warpper: 
 intermediate_generator_ = data_warping_for_candidate_filter(intermediate_generator)
-########################################## ^ 4.03 s per loop #################################################
 preprocessed_result_generator = input_output_feature_generator(intermediate_generator_, tokenizer, task = task)
-########################################## ^ 5.17 s per loop #################################################
 
 ```
 In comparison to the short-answer case, the preprocessing for long answer model (i.e., the candidate filter) requires an additional data warpper to produce the training instances candidate-by-candidate. 
