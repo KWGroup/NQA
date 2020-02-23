@@ -25,7 +25,7 @@ except Exception:
 !git clone https://github.com/KWGroup/NQA.git
 ```
 # Tutorial to the Preprocessor package 
-[A runnable colab version to this tutorial](https://colab.research.google.com/gist/jeffrey82221/c27c3294fda0ede8092c42785ec86df8/tutorial-to-preprocessor.ipynb) 
+[A runnable colab version to this tutorial](https://colab.research.google.com/gist/jeffrey82221/c27c3294fda0ede8092c42785ec86df8/tutorial-to-preprocessor.ipynb#scrollTo=W7jC0PxBJGfC) 
 
 
 ## Import the tokenizer 
@@ -42,14 +42,14 @@ This function produces preprocessed result in the form
 of dataframe or generator. 
 
 ## Applying the preprocessed data reader  
-### build dataframe from scratch 
+### (1) Building dataframe from scratch 
 ```python 
 preprocessed_dataframe = read_train_dataset(
       task='candidate_filter',
       mode='build_dataframe',
       tokenizer=tokenizer)
 ```
-### build data generator 
+### (2) Building data generator 
 ```python 
 preprocessed_instance_generator = read_train_dataset(
       task='candidate_filter',
@@ -58,7 +58,7 @@ preprocessed_instance_generator = read_train_dataset(
 ```
 We recommend using `mode == 'build_generator'` for candidate filter task, since 
 it takes a large memory space.
-### loading stored dataframe from google drive 
+### (3) Loading stored dataframe from google drive 
 ```python 
 preprocessed_dataframe = read_train_dataset(
       task='short_ans_entity',
