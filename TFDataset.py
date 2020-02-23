@@ -53,15 +53,15 @@ def df_to_dataset(dataframe,
         dataset = tf.data.Dataset.from_tensor_slices(
             (formatting_dataframe(dataframe), label_contain_answer))
     dataset = (dataset
-    	.shuffle(buffer_size=len(dataframe))
-    	.batch(batch_size, drop_remainder=True)
-    	.prefetch(tf.data.experimental.AUTOTUNE)
-    	)
+        .shuffle(buffer_size=len(dataframe))
+        .batch(batch_size, drop_remainder=True)
+        .prefetch(tf.data.experimental.AUTOTUNE)
+        )
 
     return (
-	  tpu_strategy.experimental_distribute_dataset(dataset) 
+      tpu_strategy.experimental_distribute_dataset(dataset) 
       if tpu_strategy!=None else dataset
-	)
+    )
 
 
 def generator_to_dataset(input_generator,
@@ -133,22 +133,22 @@ def generator_to_dataset(input_generator,
         pass
     # format fetched in the first run
     if label_count == 1:
-	    dataset = tf.data.Dataset.from_generator(
-	        lambda: formatted_result_generator,
-	        tuple([input_tf_types, tf.int32]),
-	        tuple([input_tf_shapes, tf.TensorShape([])]),
-	    )
-	else:
-		dataset = tf.data.Dataset.from_generator(
-	        lambda: formatted_result_generator,
-	        tuple([input_tf_types, tuple([tf.int32]*label_count)]),
-	        tuple([input_tf_shapes, tuple([tf.TensorShape([])]*label_count)]),
-	    )
+        dataset = tf.data.Dataset.from_generator(
+            lambda: formatted_result_generator,
+            tuple([input_tf_types, tf.int32]),
+            tuple([input_tf_shapes, tf.TensorShape([])]),
+        )
+    else:
+        dataset = tf.data.Dataset.from_generator(
+            lambda: formatted_result_generator,
+            tuple([input_tf_types, tuple([tf.int32]*label_count)]),
+            tuple([input_tf_shapes, tuple([tf.TensorShape([])]*label_count)]),
+        )
     if 'short_' in task:
-    	dataset = dataset.cache() 
+        dataset = dataset.cache() 
     dataset = (dataset
-    	.shuffle(buffer_size=shuffling_buffer_size)
-    	.batch(batch_size, drop_remainder=True)
-    	.prefetch(tf.data.experimental.AUTOTUNE)
-    	)
+        .shuffle(buffer_size=shuffling_buffer_size)
+        .batch(batch_size, drop_remainder=True)
+        .prefetch(tf.data.experimental.AUTOTUNE)
+        )
     return dataset
