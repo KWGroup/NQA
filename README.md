@@ -34,14 +34,14 @@ from transformers import AlbertTokenizer
 tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
 ```
 
-## Import the training data reader 
+## Import the preprocessed data reader 
 ```python
 from NQA.Preprocessor import read_train_dataset
 ```
 This function produces preprocessed result in the form  
 of dataframe or generator. 
 
-## applying the preprocessor 
+## Applying the preprocessed data reader  
 ### build dataframe from scratch 
 ```python 
 preprocessed_dataframe = read_train_dataset(
