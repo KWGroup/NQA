@@ -5,6 +5,7 @@ This repository is for the Kaggle competition of Google's Natural Question Answe
 * [Setups of this project](https://github.com/KWGroup/NQA#setups-of-this-project)
 * [Tutorial to the Preprocessor package](https://github.com/KWGroup/NQA#tutorial-to-the-preprocessor-package) 
 * [Tutorial to the TFDataset package](https://github.com/KWGroup/NQA#tutorial-to-the-tfdataset-package)
+* [Model Training Guide](https://github.com/KWGroup/NQA#Model-Training-Guide)
 
 
 # Setups of this project 
@@ -178,4 +179,94 @@ dataset = generator_to_dataset(preprocessed_result_generator,batch_size, task = 
 # Testing the resulting dataset
 from NQA.TFDataset import dataset_checker
 dataset_checker(dataset)
+```
+# Model Training Guide 
+Here, we explain how to train our NQA model. We consider using TPU with a batch size 
+of 256 and training the model used for predicting the short answer entities. 
+[A runnable colab version to this guide](https://colab.research.google.com/gist/jeffrey82221/90f0a71386d21eb416e60867c07c8f47/model-training-guide.ipynb) 
+
+```
+USE_TPU = False
+task = 'short_ans_entity'
+batch_size = 256
+```
+## Setup TPU environment 
+```
+import tensorflow as tf
+import os
+if USE_TPU:
+  # create tpu resolver and strategy
+  resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='grpc://' + os.environ['COLAB_TPU_ADDR'])
+  tf.config.experimental_connect_to_cluster(resolver)
+  tf.tpu.experimental.initialize_tpu_system(resolver)
+  tpu_strategy = tf.distribute.experimental.TPUStrategy(resolver)
+```
+If you are using the Kaggle kernal, remove `tpu='grpc://' + os.environ['COLAB_TPU_ADDR']` 
+from `TPUClusterResolver`. 
+
+## Loading tf.data.Dataset for training 
+```
+from NQA.Preprocessor import read_train_dataset 
+from NQA.TFDataset import df_to_dataset, generator_to_dataset
+import pandas as pd
+train_df = read_train_dataset(task=task,mode='at_google_drive')
+if type(train_df) == pd.core.frame.DataFrame:
+  train_ds = df_to_dataset(train_df,batch_size, 
+    task = task
+  )
+else:
+  train_ds = generator_to_dataset(train_df,batch_size, 
+    task = task
+  )
+```
+## Training 
+### using cpu or gpu 
+---
+* For CPU, the maximum batch size in 2's exponents is 16. But note that CPU does not speed up computation with larger batch size. Each batch can take > 50 seconds. 
+* For GPU, the maximum batch size in 2's exponents is also 16. Each batch takes only about 1s.  
+
+```python
+from NQA.ModelBuilder import create_model 
+if not USE_TPU:
+  learning_rate = 0.1
+  epsilon = 1e-8 
+  model = create_model(task)
+  optimizer = tf.keras.optimizers.Adam(
+    learning_rate=learning_rate, 
+    epsilon=epsilon
+  )
+  if task == 'short_ans_entity' or task == 'candidate_filter': 
+      model.compile(
+        optimizer,
+        loss='categorical_crossentropy')
+  else:
+      model.compile(
+        optimizer,
+        loss=['categorical_crossentropy','categorical_crossentropy'])
+  model.fit(train_ds,verbose = 1)
+```
+### using TPU
+---
+* For TPU, the maximum batch size in 2's exponents is 256. Each batch takes about 0.74 seconds. 
+
+```python
+from NQA.ModelBuilder import create_model 
+if USE_TPU:
+  learning_rate = 0.1
+  epsilon = 1e-8 
+  with tpu_strategy.scope():
+      model = create_model(task)
+      optimizer = tf.keras.optimizers.Adam(
+        learning_rate=learning_rate, 
+        epsilon=epsilon
+      )
+      if task == 'short_ans_entity' or task == 'candidate_filter': 
+          model.compile(
+            optimizer,
+            loss='categorical_crossentropy')
+      else:
+          model.compile(
+            optimizer,
+            loss=['categorical_crossentropy','categorical_crossentropy'])
+  model.fit(train_ds,verbose = 1)
 ```
