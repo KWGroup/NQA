@@ -27,22 +27,34 @@ import dask.bag as db
 # *  [X] For global identifier, we need all candidate and the dependency matrix.
 #################################################################################
 
-
-def get_train_data(file_name = 'simplified-nq-train.jsonl', monitor = True): 
-  total = 307372
-  i = 0
-  with zipfile.ZipFile(file_name+".zip") as myzip:
-    with myzip.open(file_name) as my_json_file:
-      if monitor:
-        with tqdm(total=total, file=sys.stdout) as pbar:
-          for json_object_str in my_json_file:
-            i +=1
-            pbar.set_description('processed example: %d' % (i))
-            pbar.update(1)
-            yield json.loads(json_object_str.decode("utf-8"))
-      else:
-        for json_object_str in my_json_file:
-          yield json.loads(json_object_str.decode("utf-8"))
+def get_train_data(file_name='simplified-nq-train.jsonl', monitor=True, unzip=True):
+    total = 307372
+    i = 0
+    if unzip:
+        with zipfile.ZipFile(file_name+".zip") as myzip:
+            with myzip.open(file_name) as my_json_file:
+                if monitor:
+                    with tqdm(total=total, file=sys.stdout) as pbar:
+                        for json_object_str in my_json_file:
+                            i += 1
+                            pbar.set_description('processed example: %d' % (i))
+                            pbar.update(1)
+                            yield json.loads(json_object_str.decode("utf-8"))
+                else:
+                    for json_object_str in my_json_file:
+                        yield json.loads(json_object_str.decode("utf-8"))
+    else:
+        with open(file_name) as my_json_file:
+            if monitor:
+                with tqdm(total=total, file=sys.stdout) as pbar:
+                    for json_object_str in my_json_file:
+                        i += 1
+                        pbar.set_description('processed example: %d' % (i))
+                        pbar.update(1)
+                        yield json.loads(json_object_str)
+            else:
+                for json_object_str in my_json_file:
+                    yield json.loads(json_object_str)
 
 # Preprocessing function for all tasks
 
@@ -565,7 +577,7 @@ def input_output_feature_generator(input, tokenizer, task='short_ans_yesno'):
                 elif task == 'candidate_filter':
                     assert "contain_answer" in instance.keys()
                     assert "candidate_text" in instance.keys()
-            #_, row = next(pd.DataFrame([instance]).iterrows())
+            # _, row = next(pd.DataFrame([instance]).iterrows())
             yield generate_input_output_per_row(
                 instance,
                 task,
