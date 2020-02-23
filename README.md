@@ -221,9 +221,6 @@ else:
 ```
 ## Training 
 ### using cpu or gpu 
----
-* For CPU, the maximum batch size in 2's exponents is 16. But note that CPU does not speed up computation with larger batch size. Each batch can take > 50 seconds. 
-* For GPU, the maximum batch size in 2's exponents is also 16. Each batch takes only about 1s.  
 
 ```python
 from NQA.ModelBuilder import create_model 
@@ -245,9 +242,12 @@ if not USE_TPU:
         loss=['categorical_crossentropy','categorical_crossentropy'])
   model.fit(train_ds,verbose = 1)
 ```
+
+* For CPU, the maximum batch size in 2's exponents is 16. But note that CPU does not speed up computation with larger batch size. Each batch can take > 50 seconds. 
+* For GPU, the maximum batch size in 2's exponents is also 16. Each batch takes only about 1s.  
+
 ### using TPU
----
-* For TPU, the maximum batch size in 2's exponents is 256. Each batch takes about 0.74 seconds. 
+
 
 ```python
 from NQA.ModelBuilder import create_model 
@@ -270,3 +270,4 @@ if USE_TPU:
             loss=['categorical_crossentropy','categorical_crossentropy'])
   model.fit(train_ds,verbose = 1)
 ```
+* For TPU, the maximum batch size in 2's exponents is 256. Each batch takes about 0.74 seconds. 
