@@ -27,6 +27,7 @@ import dask.bag as db
 # *  [X] For global identifier, we need all candidate and the dependency matrix.
 #################################################################################
 
+
 def get_train_data(file_name='simplified-nq-train.jsonl', monitor=True, unzip=True):
     total = 307372
     i = 0
@@ -617,3 +618,125 @@ def create_input_output_featureset(
     generator = input_output_feature_generator(input, tokenizer, task=task)
     dict_list = [element for element in generator]
     return pd.DataFrame(dict_list)
+
+
+###################### III: Preprocessing (Data Warping + Data Formatting)######################
+# The function in this section is for obtaining the preprocessed result of the training
+# data. It is based on the data warping and formatting functions above (I and II).
+#
+# Again, it takes care of the following tasks:
+#
+SHORT_ANS_YESNO = 'short_ans_yesno'
+SHORT_ANS_ENTITY = 'short_ans_entity'
+CANDIDATE_FILTER = 'candidate_filter'
+SHORT_ANS = 'short_answer'
+#
+# Additionally, it takes care of where and how the training raw data 
+# in terms of the following aspects. 
+# 1. Intermediate data obtainable from google drive or not 
+# 2. Returning a dataframe or a generator 
+# 3. Run on kaggle kernal or colab, each of which has a particular type of 
+#    training file. 
+# 
+################################################################################
+# TODO:
+# [ ] convert all functions below into a class
+# such that each data reading method can be encapsulated in
+# a function class.
+# [ ] design an auto selection function to obtain the desired data reading method.
+# This function takes the input arguments, such as "mode" and "task" to determine
+# which data reading method to be used.
+################################################################################
+
+
+def read_train_dataset(
+        task=SHORT_ANS_YESNO,
+        mode='at_google_drive',
+        head_size=-1,
+        on_kaggle=False,
+        tokenizer=None):
+    # Arguements:
+    # 1. task: The downstream task, such as short_ans_yesno or candidate filter.
+    # 2. mode: Different data reading mode.
+    # 3. head_size: The number of raw data example to be read when mode == 'build_dataframe.'
+    #               Useful for reducing time usage in code developement.
+    #               Its default value is -1, indicating using the entire raw data.
+    # 4. on_kaggle: True if training on kaggle; False if on colab.
+    #               It controls where and how the raw training data is read.
+    # Return:
+    # a pandas dataframe if mode == 'build_dataframe' or 'at_google_drive'
+    # or a generator if mode == 'build_generator'
+    # Notes:
+    # Currently, we recommend using mode == 'at_google_drive'
+    # in the case of short answer tasks, to load the cached preprocessed data
+    # for faster workflow.
+    # In the case of the long answer tasks (i.e., candidate filter),
+    # we recommend using model == 'build_generator' to avoid high memory
+    # consumption.
+    assert mode == 'build_dataframe' or mode == 'build_generator' or mode == 'at_google_drive'
+    if on_kaggle:
+        file_name = '/kaggle/input/tensorflow2-question-answering/simplified-nq-train.jsonl'
+        unzip = False
+    else:  # on_colab
+        file_name = 'simplified-nq-train.jsonl'
+        unzip = True
+    if mode == 'at_google_drive':
+        #print("loading dataframe from google drive...")
+        assert head_size == -1
+        assert task in {SHORT_ANS_YESNO, SHORT_ANS_ENTITY}, \
+            f"task should be {SHORT_ANS_YESNO} or {SHORT_ANS_ENTITY}"
+        SHORT_ANS_YESNO_DF = f"{SHORT_ANS_YESNO}.pkl"
+        SHORT_ANS_ENTITY_DF = f"{SHORT_ANS_ENTITY}.pkl"
+        if task == SHORT_ANS_YESNO:
+            datapath = f"drive/My Drive/{SHORT_ANS_YESNO_DF}"
+            if not os.path.exists(datapath):
+                print("short answer yesno dataset is not found!")
+                return
+            preprocessed_dataframe = pd.read_pickle(datapath)
+            print("[DONE]")
+            return preprocessed_dataframe
+        elif task == SHORT_ANS_ENTITY:
+            datapath = f"drive/My Drive/{SHORT_ANS_ENTITY_DF}"
+            if not os.path.exists(f"drive/My Drive/{SHORT_ANS_ENTITY_DF}"):
+                print("short answer entity dataset is not found!")
+                return
+            preprocessed_dataframe = pd.read_pickle(datapath)
+            print("[DONE]")
+            return preprocessed_dataframe
+    elif mode == 'build_dataframe':
+        #print("building dataframe...")
+        assert tokenizer != None
+        assert task in {SHORT_ANS_YESNO, SHORT_ANS_ENTITY, CANDIDATE_FILTER, SHORT_ANS}, \
+            f"task should be {SHORT_ANS_YESNO}, {SHORT_ANS_ENTITY}, {SHORT_ANS}, {CANDIDATE_FILTER}"
+        train_data_generator = get_train_data(
+            file_name=file_name, monitor=True, unzip=unzip)
+        if head_size != -1:
+            # limiting the size of raw data:
+            train_data_generator = iter(
+                [next(train_data_generator) for _ in range(head_size)])
+        intermediate_generator = create_answer_data_generator(
+            train_data_generator, task=task)
+        if task == CANDIDATE_FILTER:
+            intermediate_generator = data_warping_for_candidate_filter(
+                intermediate_generator)
+        preprocessed_dataframe = create_input_output_featureset(
+            intermediate_generator,
+            tokenizer,
+            task=task)
+        print("[DONE]")
+        return preprocessed_dataframe
+    else:  # model == 'build_generator'
+        assert head_size == -1
+        assert tokenizer != None
+        assert task in {SHORT_ANS_YESNO, SHORT_ANS_ENTITY, CANDIDATE_FILTER, SHORT_ANS}, \
+            f"task should be {SHORT_ANS_YESNO}, {SHORT_ANS_ENTITY}, {SHORT_ANS}, {CANDIDATE_FILTER}"
+        train_data_generator = get_train_data(
+            file_name=file_name, monitor=False, unzip=unzip)
+        intermediate_generator = create_answer_data_generator(
+            train_data_generator, task=task)
+        if task == CANDIDATE_FILTER:
+            intermediate_generator = data_warping_for_candidate_filter(
+                intermediate_generator)
+        preprocessed_result_generator = input_output_feature_generator(
+            intermediate_generator, tokenizer, task=task)
+        return preprocessed_result_generator
