@@ -36,6 +36,7 @@ def df_to_dataset(dataframe,
         label_end_token = dataframe.pop('label_end_token')
         dataset = tf.data.Dataset.from_tensor_slices(
             (formatting_dataframe(dataframe), label_start_token, label_end_token))
+        dataset = dataset.map(lambda x,y1,y2:(x,(y1,y2)))
     elif task == 'short_ans_yesno':
         label_yes_no = dataframe.pop('label_yes_no')
         dataset = tf.data.Dataset.from_tensor_slices(
@@ -46,6 +47,7 @@ def df_to_dataset(dataframe,
         label_yes_no = dataframe.pop('label_yes_no')
         dataset = tf.data.Dataset.from_tensor_slices(
             (formatting_dataframe(dataframe), label_start_token, label_end_token, label_yes_no))
+        dataset = dataset.map(lambda x,y1,y2,y3:(x,(y1,y2,y3))) 
     elif task == 'candidate_filter':
         label_contain_answer = dataframe.pop('label_contain_answer')
         dataset = tf.data.Dataset.from_tensor_slices(
@@ -55,6 +57,7 @@ def df_to_dataset(dataframe,
     	.batch(batch_size, drop_remainder=True)
     	.prefetch(tf.data.experimental.AUTOTUNE)
     	)
+
     return (
 	  tpu_strategy.experimental_distribute_dataset(dataset) 
       if tpu_strategy!=None else dataset
