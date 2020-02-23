@@ -108,17 +108,17 @@ def generator_to_dataset(input_generator,
     elif task == 'short_answer':
         formatted_result_generator = map(
             lambda x: (input_data_converter(x),
-                       x['label_start_token'],
+                       (x['label_start_token'],
                        x['label_end_token'],
-                       x['label_yes_no']
+                       x['label_yes_no'])
                        ),
             input_generator)
         label_count = 3
     elif task == 'short_ans_entity':
         formatted_result_generator = map(
             lambda x: (input_data_converter(x),
-                       x['label_start_token'],
-                       x['label_end_token']
+                       (x['label_start_token'],
+                       x['label_end_token'])
                        ),
             input_generator)
         label_count = 2
@@ -134,8 +134,8 @@ def generator_to_dataset(input_generator,
     # format fetched in the first run
     dataset = tf.data.Dataset.from_generator(
         lambda: formatted_result_generator,
-        tuple([input_tf_types]+[tf.int32]*label_count),
-        tuple([input_tf_shapes]+[tf.TensorShape([])]*label_count),
+        tuple(input_tf_types, tuple([tf.int32]*label_count)),
+        tuple(input_tf_shapes, tuple([tf.TensorShape([])]*label_count)),
     )
     if 'short_' in task:
     	dataset = dataset.cache() 
