@@ -181,15 +181,14 @@ from NQA.TFDataset import dataset_checker
 dataset_checker(dataset)
 ```
 # Model Training Guide 
-Here, we explain how to train our NQA model. We consider using TPU with a batch size 
-of 256 and training the model used for predicting the short answer entities. 
-[A runnable colab version to this guide](https://colab.research.google.com/gist/jeffrey82221/90f0a71386d21eb416e60867c07c8f47/model-training-guide.ipynb) 
-
+Here, we explain how to train our NQA model by using the following parameters.
 ```python
 USE_TPU = False
 task = 'short_ans_entity'
 batch_size = 256
 ```
+[A runnable colab version to this guide](https://colab.research.google.com/gist/jeffrey82221/90f0a71386d21eb416e60867c07c8f47/model-training-guide.ipynb)
+
 ## Setup TPU environment 
 ```python
 import tensorflow as tf
