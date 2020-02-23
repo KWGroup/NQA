@@ -4,6 +4,7 @@ from tqdm import tqdm
 import numpy as np
 import json
 import pandas as pd
+import os
 import dask.bag as db
 ###################### I: Data Warping ##########################################
 # Functions below are for warping the training data. They are design for
