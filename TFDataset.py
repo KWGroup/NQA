@@ -132,11 +132,18 @@ def generator_to_dataset(input_generator,
     else:
         pass
     # format fetched in the first run
-    dataset = tf.data.Dataset.from_generator(
-        lambda: formatted_result_generator,
-        tuple([input_tf_types, tuple([tf.int32]*label_count)]),
-        tuple([input_tf_shapes, tuple([tf.TensorShape([])]*label_count)]),
-    )
+    if label_count == 1:
+	    dataset = tf.data.Dataset.from_generator(
+	        lambda: formatted_result_generator,
+	        tuple([input_tf_types, tf.int32]),
+	        tuple([input_tf_shapes, tf.TensorShape([])]),
+	    )
+	else:
+		dataset = tf.data.Dataset.from_generator(
+	        lambda: formatted_result_generator,
+	        tuple([input_tf_types, tuple([tf.int32]*label_count)]),
+	        tuple([input_tf_shapes, tuple([tf.TensorShape([])]*label_count)]),
+	    )
     if 'short_' in task:
     	dataset = dataset.cache() 
     dataset = (dataset
